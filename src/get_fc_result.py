@@ -2,30 +2,25 @@ import json
 from llm_sdk import Small_LLM_Model
 
 
-def get_float_results(json_str: str) -> str:
-    """Verifie si les valeurs sont des int"""
+def get_float_results(json_str: str, key: str) -> str:
+    """Verifie si les valeurs sont des float"""
     try:
         data = json.loads(json_str)
-        print(f"{data}")
-        for key, value in data.get("parameters", {}).items():
-            if value.get("type") == "number":
-                data[key] = float(value)
+        if key in data:
+            data[key] = float(data[key])
         return json.dumps(data)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, ValueError):
         return json_str
 
 
-def get_num_results(json_str: str) -> str:
+def get_num_results(json_str: str, key: str) -> str:
     """Verifie si les valeurs sont des int"""
     try:
         data = json.loads(json_str)
-        print(f"{data}")
-        for key, value in data.get("parameters", {}).items():
-            if value.get("type") == "integer":
-                data[key] = int(value)
-                print(f"\n\n\n\n\n int(value): {int(value)}")
+        if key in data:
+            data[key] = int(data[key])
         return json.dumps(data)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, ValueError):
         return json_str
 
 
@@ -46,10 +41,12 @@ def get_fc_result(prompt: str, function_name: str, fc_def_full: list) -> str:
     func_def_str = json.dumps(target_func, indent=2)
 
     system_prompt = (
-        "Output ONLY a single valid JSON object representing "
-        "the parameters values. Do not output anything else.\n"
+        "Extract the parameters from the user prompt based on the function "
+        "definition. You MUST return ONLY a valid JSON object. Do not add "
+        "any extra text or explanation. If numbers are attached to random "
+        "letters (e.g. 'foo45bar' or '123dds'), extract ONLY the actual numerical value.\n\n"
         f"Function definition:\n{func_def_str}\n\n"
-        f"User prompt: {prompt}\n"
+        f"User prompt: {prompt}\n\n"
         "Parameters JSON:\n{"
     )
 
@@ -117,9 +114,9 @@ def get_fc_result(prompt: str, function_name: str, fc_def_full: list) -> str:
 
     for k, v in target_func.get("parameters", {}).items():
         if v.get("type") == "number":
-            result_str = get_float_results(result_str)
+            result_str = get_float_results(result_str, k)
     for k, v in target_func.get("parameters", {}).items():
         if v.get("type") == "integer":
-            result_str = get_num_results(result_str)
+            result_str = get_num_results(result_str, k)
 
     return result_str

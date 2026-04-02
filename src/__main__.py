@@ -13,17 +13,17 @@ def main():
     # 1. Initialisation du LLM
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--fc_tests",
-                        default="/home/opernod/42/cm/moulinette/data/input/function_calling_tests.json")
-    parser.add_argument("--fc_output",
-                        default="/home/opernod/42/cm/moulinette/data/correction/function_calling_corrections.json")
-    parser.add_argument("--fc_def",
-                        default="/home/opernod/42/cm/moulinette/data/input/functions_definition.json")
+    parser.add_argument("--input",
+                        default="data/input/function_calling_tests.json")
+    parser.add_argument("--output",
+                        default="data/output/function_calling_results.json")
+    parser.add_argument("--functions_definition",
+                        default="data/input/functions_definition.json")
     args, _ = parser.parse_known_args()
 
-    fc_tests_path = args.fc_tests
-    fc_output_path = args.fc_output
-    fc_def_path = args.fc_def
+    fc_tests_path = args.input
+    fc_output_path = args.output
+    fc_def_path = args.functions_definition
 
     try:
         with open(fc_tests_path, "r") as f:
