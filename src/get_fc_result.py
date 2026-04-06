@@ -6,10 +6,11 @@ def get_float_results(json_str: str, key: str) -> str:
     """Verifie si les valeurs sont des float"""
     try:
         data = json.loads(json_str)
-        if key in data:
-            data[key] = float(data[key])
+        target_dict = data["parameters"] if "parameters" in data else data
+        if key in target_dict:
+            target_dict[key] = float(target_dict[key])
         return json.dumps(data)
-    except (json.JSONDecodeError, ValueError):
+    except (json.JSONDecodeError, ValueError, TypeError):
         return json_str
 
 
@@ -17,10 +18,12 @@ def get_num_results(json_str: str, key: str) -> str:
     """Verifie si les valeurs sont des int"""
     try:
         data = json.loads(json_str)
-        if key in data:
-            data[key] = int(data[key])
+        target_dict = data["parameters"] if "parameters" in data else data
+
+        if key in target_dict:
+            target_dict[key] = int(target_dict[key])
         return json.dumps(data)
-    except (json.JSONDecodeError, ValueError):
+    except (json.JSONDecodeError, ValueError, TypeError):
         return json_str
 
 
@@ -40,17 +43,26 @@ def get_fc_result(prompt: str, function_name: str, fc_def_full: list) -> str:
     # Convertir en chaîne de caractères
     func_def_str = json.dumps(target_func, indent=2)
 
-    system_prompt = (
-        "Extract the parameters from the user prompt based on the function "
-        "definition. You MUST return ONLY a valid JSON object. Do not add "
-        "any extra text or explanation. If numbers are attached to random "
-        "letters (e.g. 'foo45bar' or '123dds'), extract ONLY the actual numerical value.\n\n"
-        f"Function definition:\n{func_def_str}\n\n"
-        f"User prompt: {prompt}\n\n"
-        "Parameters JSON:\n{"
-    )
-
-    tokens = llm.encode(system_prompt).tolist()[0]
+    prompt_2 = (
+            "<|im_start|>system\n"
+            "You are an expert data extractor. Your ONLY job is to extract the"
+            "arguments from the user's prompt to match the given"
+            "function schema.\n\n"
+            f"Function:\n{func_def_str}\n\n"
+            "CRITICAL RULES:\n"
+            "1. Return ONLY a valid JSON object.\n"
+            "2. DO NOT EXECUTE THE TASK. or example, if asked to reverse"
+            "or modify a string, extract the original source string, NOT the"
+            "result.\n 3. If a parameter is a regular expression, ensure the"
+            "pattern matches both UPPERCASE and LOWERCASE letters"
+            "appropriately based on the prompt's intent.\n"
+            "<|im_end|>\n"
+            "<|im_start|>user\n"
+            f"{prompt}<|im_end|>\n"
+            "<|im_start|>assistant\n"
+            "{"
+        )
+    tokens = llm.encode(prompt_2).tolist()[0]
     len_tokens = len(tokens)
     eos_token = llm._tokenizer.eos_token_id
 
@@ -89,7 +101,6 @@ def get_fc_result(prompt: str, function_name: str, fc_def_full: list) -> str:
         if not in_string:
             if current_text.strip().endswith('}'):
                 if eos_token < len(logits):
-                    # N'ajoute pas -inf à eos si on a une forme finie
                     pass
             else:
                 if eos_token < len(logits):
@@ -112,11 +123,29 @@ def get_fc_result(prompt: str, function_name: str, fc_def_full: list) -> str:
     generated_text = llm.decode(tokens[len_tokens:]).strip()
     result_str = "{" + generated_text
 
+    open_braces = result_str.count("{")
+    close_braces = result_str.count("}")
+    if open_braces > close_braces:
+        result_str += "}" * (open_braces - close_braces)
+
     for k, v in target_func.get("parameters", {}).items():
         if v.get("type") == "number":
             result_str = get_float_results(result_str, k)
     for k, v in target_func.get("parameters", {}).items():
         if v.get("type") == "integer":
             result_str = get_num_results(result_str, k)
+
+    # Patch: Si le modèle a englobé les résultats dans un objet "parameters" (ex: {"name": "...", "parameters": {...}})
+    # On extrait uniquement le dictionnaire intérieur pour garder le bon format
+    try:
+        final_data = json.loads(result_str)
+        if "parameters" in final_data and isinstance(final_data["parameters"], dict):
+            return json.dumps(final_data["parameters"])
+        # Patch supplémentaire: Si la clé "name" de nom de fonction ressort au même niveau que les paramètres
+        if "name" in final_data and "name" not in expected_keys:
+            del final_data["name"]
+            return json.dumps(final_data)
+    except (json.JSONDecodeError, ValueError, TypeError):
+        pass
 
     return result_str

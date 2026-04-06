@@ -42,7 +42,7 @@ def main():
             continue
 
         print(f"\n--- Traitement de : '{prompt_text}' ---")
-        prompt_result = get_fonction_result(input_data, prompt_text)
+        prompt_result, errors = get_fonction_result(input_data, prompt_text)
         results_list.append(prompt_result)
 
     # Sauvegarde de tous les résultats dans le fichier de sortie
@@ -50,10 +50,13 @@ def main():
     with open(fc_output_path, "w") as f:
         json.dump(results_list, f, indent=4)
 
-    print(f"\nRésultats sauvegardés dans {fc_output_path}")
+    print(f"\nRésultats sauvegardés dans {fc_output_path} pour "
+          f"\033[32m{len(results_list)} tests \033[0m avec \033[31m{errors} "
+          "erreurs \033[0m de décodage JSON.")
 
 
 def get_fonction_result(function_definitions_raw, prompt):
+    error = 0
     try:
         defs = json.loads(function_definitions_raw)
         filtered_defs = [{"name": func.get("name"),
@@ -82,8 +85,6 @@ def get_fonction_result(function_definitions_raw, prompt):
         # on cherche le premier JSON complet
         if start_idx != -1:
             try:
-                # On cherche le dernier bloc complet
-                # au lieu de s'arrêter bêtement au premier "}" inclus dans le texte
                 start_idx = clean_result.find('{')
                 end_idx = clean_result.rfind('}')
                 if start_idx != -1 and end_idx != -1 and end_idx >= start_idx:
@@ -117,11 +118,12 @@ def get_fonction_result(function_definitions_raw, prompt):
             print(f"Les paramètres extraits sont : {json.dumps(result_json)}")
 
         except json.JSONDecodeError:
+            error += 1
             print(f"La fonction choisie est : {fc_name}")
-            print(f"Erreur lors du décodage du JSON des paramètres :"
-                  f"{clean_result}")
+            print(f"\033[33mErreur lors du décodage du JSON des paramètres: "
+                  f"{clean_result}\033[0m")
 
-    return result_dict
+    return result_dict, error
 
 
 if __name__ == "__main__":

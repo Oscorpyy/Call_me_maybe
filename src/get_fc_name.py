@@ -8,15 +8,18 @@ def get_fc_name(prompt: str, fc_def: list) -> str:
     import json
     fc_def_str = json.dumps(fc_def)
 
-    system_prompt = (
-        "Choose a fonction"
-        f"Available functions:\n{fc_def_str}\n\n"
-        f"User prompt: {prompt}\n"
+    prompt_1 = (
+        "<|im_start|>system\n"
+        "Choose a function.\n"
+        f"Available functions:\n{fc_def_str}<|im_end|>\n"
+        "<|im_start|>user\n"
+        f"{prompt}<|im_end|>\n"
+        "<|im_start|>assistant\n"
         "Function name: "
     )
 
     # Encoder seulement le construct complet
-    tokens = llm.encode(system_prompt).tolist()[0]
+    tokens = llm.encode(prompt_1).tolist()[0]
     len_tokens = len(tokens)
     name_found = False
 
