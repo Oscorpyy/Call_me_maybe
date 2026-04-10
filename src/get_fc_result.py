@@ -1,9 +1,18 @@
 import json
+from typing import Any
 from llm_sdk import Small_LLM_Model
 
 
 def get_float_results(json_str: str, key: str) -> str:
-    """Verifie si les valeurs sont des float"""
+    """Checks if values are floats and converts them.
+
+    Args:
+        json_str (str): The JSON string containing the parameters.
+        key (str): The parameter key to convert to float.
+
+    Returns:
+        str: The updated JSON string, or original string on error.
+    """
     try:
         data = json.loads(json_str)
         target_dict = data["parameters"] if "parameters" in data else data
@@ -15,7 +24,15 @@ def get_float_results(json_str: str, key: str) -> str:
 
 
 def get_num_results(json_str: str, key: str) -> str:
-    """Verifie si les valeurs sont des int"""
+    """Checks if values are ints and converts them.
+
+    Args:
+        json_str (str): The JSON string containing the parameters.
+        key (str): The parameter key to convert to int.
+
+    Returns:
+        str: The updated JSON string, or original string on error.
+    """
     try:
         data = json.loads(json_str)
         target_dict = data["parameters"] if "parameters" in data else data
@@ -27,20 +44,31 @@ def get_num_results(json_str: str, key: str) -> str:
         return json_str
 
 
-def get_fc_result(prompt: str, function_name: str, fc_def_full: list) -> str:
-    """Fonction pour extraire les arguments nécessaires à la fonction."""
+def get_fc_result(prompt: str, function_name: str,
+                  fc_def_full: list[dict[str, Any]]) -> str:
+    """Extracts the necessary arguments for the function from the prompt.
+
+    Args:
+        prompt (str): The user's prompt.
+        function_name (str): The target function's name.
+        fc_def_full (list[dict[str, Any]]): Full function definitions schema.
+
+    Returns:
+        str: A JSON string of the extracted parameters.
+    """
     llm = Small_LLM_Model()
 
     target_func = None
     for func in fc_def_full:
-        if func.get("name") == function_name:
+        func_name = func.get("name")
+        if isinstance(func_name, str) and func_name == function_name:
             target_func = func
             break
 
     if not target_func:
-        return "Erreur: Fonction non trouvée"
+        return "Error: Function not found"
 
-    # Convertir en chaîne de caractères
+    # Convert to string
     func_def_str = json.dumps(target_func, indent=2)
 
     prompt_2 = (
@@ -135,17 +163,14 @@ def get_fc_result(prompt: str, function_name: str, fc_def_full: list) -> str:
         if v.get("type") == "integer":
             result_str = get_num_results(result_str, k)
 
-    # Patch: Si le modèle a englobé les résultats dans un objet "parameters" (ex: {"name": "...", "parameters": {...}})
-    # On extrait uniquement le dictionnaire intérieur pour garder le bon format
     try:
         final_data = json.loads(result_str)
-        if "parameters" in final_data and isinstance(final_data["parameters"], dict):
+        if "parameters" in final_data and isinstance(
+                final_data["parameters"], dict):
             return json.dumps(final_data["parameters"])
-        # Patch supplémentaire: Si la clé "name" de nom de fonction ressort au même niveau que les paramètres
         if "name" in final_data and "name" not in expected_keys:
             del final_data["name"]
             return json.dumps(final_data)
     except (json.JSONDecodeError, ValueError, TypeError):
         pass
-
     return result_str

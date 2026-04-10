@@ -1,8 +1,16 @@
 from llm_sdk import Small_LLM_Model
 
 
-def get_fc_name(prompt: str, fc_def: list) -> str:
-    """Fonction de test pour récupérer le nom de la fonction appelée."""
+def get_fc_name(prompt: str, fc_def: list[dict[str, str]]) -> str:
+    """Retrieves the called function name using the LLM.
+
+    Args:
+        prompt (str): The user's prompt.
+        fc_def (list[dict[str, str]]): Valid function definitions.
+
+    Returns:
+        str: The function name extracted by the model.
+    """
     llm = Small_LLM_Model()
 
     import json
@@ -18,7 +26,7 @@ def get_fc_name(prompt: str, fc_def: list) -> str:
         "Function name: "
     )
 
-    # Encoder seulement le construct complet
+    # Encode only the full construct
     tokens = llm.encode(prompt_1).tolist()[0]
     len_tokens = len(tokens)
     name_found = False
