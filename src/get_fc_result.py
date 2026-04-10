@@ -27,7 +27,7 @@ def get_num_results(json_str: str, key: str) -> str:
     """Checks if values are ints and converts them.
 
     Args:
-        json_str (str): The JSON string containing the parameters.
+         json_str (str): The JSON string containing the parameters.
         key (str): The parameter key to convert to int.
 
     Returns:

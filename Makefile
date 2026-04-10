@@ -64,7 +64,7 @@ mouli : install
 	@printf "\033[34mPreparing exercises...\033[0m\n"
 	@cd moulinette && uv run python -m moulinette prepare_exercises --set private
 	@printf "\033[34mRunning the simulation with ia for grading...\033[0m\n"
-	@time uv run python -m src --input moulinette/data/input/function_calling_tests.json --functions_definition moulinette/data/input/functions_definition.json
+	@uv run python -m src --input moulinette/data/input/function_calling_tests.json --functions_definition moulinette/data/input/functions_definition.json
 	@printf "\033[34mGrading student answers...\033[0m\n"
 	@cd moulinette && uv run python -m moulinette grade_student_answers --set private --student_answer_path ../data/output/function_calling_results.json
 
