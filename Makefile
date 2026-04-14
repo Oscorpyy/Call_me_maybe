@@ -26,7 +26,7 @@ debug: install
 	@printf "  -> \033[33ml\033[0m (list)  : Affiche le code autour de la ligne actuelle\n"
 	@printf "  -> \033[33mq\033[0m (quit)  : Quitte le debugger\n"
 	@printf "\033[33m--------------------------------------------------------\033[0m\n"
-	@uv run python -m pdb src
+	@uv run python -m pdb -m src
 
 clean:
 	@printf "\033[34mCleaning up...\033[0m\n"
@@ -51,7 +51,7 @@ lint: install
 	--check-untyped-defs && printf "\033[32m[OK]\033[0m Mypy\n"
 	@printf "\033[34mLinting complete.\033[0m\n"
 
-lint_strict: install
+lint-strict: install
 	@printf "\033[34mRunning flake8 with strict settings...\033[0m\n"
 	@uv run python -m flake8 --max-line-length=120 $(SRC_DIR)/ && printf "\033[32m[OK]\033[0m Flake8\n"
 	@printf "\033[34mRunning mypy with strict settings...\033[0m\n"
@@ -69,4 +69,4 @@ mouli : install
 	@cd moulinette && uv run python -m moulinette grade_student_answers --set private --student_answer_path ../data/output/function_calling_results.json
 
 
-.PHONY: install run debug clean re lint lint_strict mouli
+.PHONY: install run debug clean re lint lint-strict mouli

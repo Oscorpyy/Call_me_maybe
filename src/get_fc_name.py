@@ -34,8 +34,7 @@ def get_fc_name(prompt: str, fc_def: list[dict[str, str]]) -> str:
     fc_name = ""
 
     valid_names = [func["name"] for func in fc_def if "name" in func]
-
-    eos_token = llm._tokenizer.eos_token_id
+    eos_token = llm.encode("<|im_end|>").tolist()[0][0]
 
     while not name_found:
         logits = llm.get_logits_from_input_ids(tokens)

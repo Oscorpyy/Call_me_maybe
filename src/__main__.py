@@ -7,7 +7,6 @@ from typing import Any
 from src.get_fc_name import get_fc_name
 from src.get_fc_result import get_fc_result
 from src.parssing import parse_and_validate_args
-from llm_sdk import Small_LLM_Model
 from time import time
 
 
@@ -20,17 +19,14 @@ def main() -> None:
     """
     # 1. LLM initialization
     start_time = time()
-    llm = Small_LLM_Model()
-    name = llm._model_name
-    fc_tests_path, fc_output_path, fc_def_path = parse_and_validate_args()
-    print(f"fc_tests_path: {fc_tests_path}")
+    fc_prompt_path, fc_output_path, fc_def_path = parse_and_validate_args()
+    print(f"fc_prompt_path: {fc_prompt_path}")
     print(f"fc_output_path: {fc_output_path}")
     print(f"fc_def_path: {fc_def_path}")
-    print(f"LLM Model Name: {name}")
 
     try:
-        with open(fc_tests_path, "r") as f:
-            tests_data = json.load(f)  # Load the list of prompt dicts
+        with open(fc_prompt_path, "r") as f:
+            prompt_data = json.load(f)  # Load the list of prompt dicts
         with open(fc_def_path, "r") as f:
             input_data = f.read()
     except FileNotFoundError as e:
@@ -50,8 +46,8 @@ def main() -> None:
     total_errors = 0
     # Iterate over all tests (prompts)
     try:
-        for test in tests_data:
-            prompt_text = test.get("prompt", "")
+        for prompt in prompt_data:
+            prompt_text = prompt.get("prompt", "")
             if not prompt_text:
                 continue
 
@@ -61,7 +57,7 @@ def main() -> None:
             total_errors += errors
             results_list.append(prompt_result)
     except Exception as e:
-        print(f"Error processing tests data: {e}")
+        print(f"Error processing prompts data: {e}")
         return
 
     # Save all results in the output file
@@ -73,8 +69,9 @@ def main() -> None:
           f"\033[32m{len(results_list)} tests \033[0m with "
           f"\033[31m{total_errors} JSON decoding errors \033[0m.")
     end_time = time()
-    print(f"Total execution time: \033[33m{end_time - start_time:.2f}"
-          " seconds\033[0m")
+    print(f"Total execution time: \033[33m{(end_time - start_time)//60}"
+          f" minutes {(end_time - start_time) % 60:.0f} seconds"
+          f" or {(end_time - start_time):.2f} seconds\033[0m")
 
 
 def get_fonction_result(function_definitions_raw: str,

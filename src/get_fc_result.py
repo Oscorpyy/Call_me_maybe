@@ -27,7 +27,7 @@ def get_num_results(json_str: str, key: str) -> str:
     """Checks if values are ints and converts them.
 
     Args:
-         json_str (str): The JSON string containing the parameters.
+        json_str (str): The JSON string containing the parameters.
         key (str): The parameter key to convert to int.
 
     Returns:
@@ -92,7 +92,7 @@ def get_fc_result(prompt: str, function_name: str,
         )
     tokens = llm.encode(prompt_2).tolist()[0]
     len_tokens = len(tokens)
-    eos_token = llm._tokenizer.eos_token_id
+    eos_token = llm.encode("<|im_end|>").tolist()[0][0]
 
     max_tokens = 50
 

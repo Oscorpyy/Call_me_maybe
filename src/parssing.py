@@ -78,6 +78,19 @@ def parse_and_validate_args() -> tuple[str, str, str]:
             if len(data) == 0:
                 print(f"❌ Critical error: '{input_file}' is empty.")
                 sys.exit(1)
+            for item in data:
+                if not isinstance(item, dict):
+                    print(f"❌ Critical error: '{input_file}' items "
+                          f"must be objects.")
+                    sys.exit(1)
+                if "prompt" not in item:
+                    print(f"❌ Critical error: '{input_file}' missing "
+                          f"'prompt' key.")
+                    sys.exit(1)
+                if not isinstance(item["prompt"], str):
+                    print(f"❌ Critical error: '{input_file}' 'prompt' "
+                          f"must be a string.")
+                    sys.exit(1)
     except json.JSONDecodeError as e:
         print(f"❌ Critical error: '{input_file}' is not valid JSON. ({e})")
         sys.exit(1)
@@ -119,6 +132,54 @@ def parse_and_validate_args() -> tuple[str, str, str]:
                 print(f"❌ Critical error: '{def_file}' must "
                       f"contain a list of objects.")
                 sys.exit(1)
+            valid_types = {"number", "integer", "boolean", "string"}
+            for item in data:
+                if not isinstance(item, dict):
+                    print(f"❌ Critical error: '{def_file}' items must "
+                          f"be objects.")
+                    sys.exit(1)
+                if "name" not in item or not isinstance(item["name"], str):
+                    print(f"❌ Critical error: '{def_file}' missing or "
+                          f"invalid 'name'.")
+                    sys.exit(1)
+                if "description" not in item or not isinstance(
+                        item["description"], str):
+                    print(f"❌ Critical error: '{def_file}' missing or "
+                          f"invalid 'description'.")
+                    sys.exit(1)
+
+                if "parameters" not in item:
+                    print(f"❌ Critical error: '{def_file}' missing "
+                          f"'parameters'.")
+                    sys.exit(1)
+                if not isinstance(item["parameters"], dict):
+                    print(f"❌ Critical error: '{def_file}' "
+                          f"'parameters' must be an object.")
+                    sys.exit(1)
+                for p_key, p_val in item["parameters"].items():
+                    if not isinstance(p_val, dict) or "type" not in p_val:
+                        print(f"❌ Critical error: '{def_file}' "
+                              f"parameter '{p_key}' missing 'type'.")
+                        sys.exit(1)
+                    if p_val["type"] not in valid_types:
+                        print(f"❌ Critical error: '{def_file}' "
+                              f"invalid type '{p_val['type']}' in "
+                              f"parameter '{p_key}'.")
+                        sys.exit(1)
+
+                if "returns" not in item:
+                    print(f"❌ Critical error: '{def_file}' missing "
+                          f"'returns'.")
+                    sys.exit(1)
+                ret_val = item["returns"]
+                if not isinstance(ret_val, dict) or "type" not in ret_val:
+                    print(f"❌ Critical error: '{def_file}' 'returns' "
+                          f"must be an object containing 'type'.")
+                    sys.exit(1)
+                if ret_val["type"] not in valid_types:
+                    print(f"❌ Critical error: '{def_file}' invalid "
+                          f"returns type '{ret_val['type']}'.")
+                    sys.exit(1)
     except json.JSONDecodeError as e:
         print(f"❌ Critical error: '{def_file}' is not valid JSON. ({e})")
         sys.exit(1)
