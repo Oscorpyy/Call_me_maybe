@@ -91,6 +91,10 @@ def parse_and_validate_args() -> tuple[str, str, str]:
                     print(f"❌ Critical error: '{input_file}' 'prompt' "
                           f"must be a string.")
                     sys.exit(1)
+                if not item["prompt"].strip():
+                    print(f"❌ Critical error: '{input_file}' 'prompt' "
+                          f"cannot be empty.")
+                    sys.exit(1)
     except json.JSONDecodeError as e:
         print(f"❌ Critical error: '{input_file}' is not valid JSON. ({e})")
         sys.exit(1)
@@ -142,10 +146,18 @@ def parse_and_validate_args() -> tuple[str, str, str]:
                     print(f"❌ Critical error: '{def_file}' missing or "
                           f"invalid 'name'.")
                     sys.exit(1)
+                if not item["name"].strip():
+                    print(f"❌ Critical error: '{def_file}' 'name' "
+                          f"cannot be empty.")
+                    sys.exit(1)
                 if "description" not in item or not isinstance(
                         item["description"], str):
                     print(f"❌ Critical error: '{def_file}' missing or "
                           f"invalid 'description'.")
+                    sys.exit(1)
+                if not item["description"].strip():
+                    print(f"❌ Critical error: '{def_file}' "
+                          f"'description' cannot be empty.")
                     sys.exit(1)
 
                 if "parameters" not in item:
