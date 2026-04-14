@@ -1,4 +1,10 @@
-from llm_sdk import Small_LLM_Model
+import os
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["HF_DATASETS_OFFLINE"] = "1"
+
+
+import json  # noqa: E402
+from llm_sdk import Small_LLM_Model  # noqa: E402
 
 
 def get_fc_name(prompt: str, fc_def: list[dict[str, str]]) -> str:
@@ -13,7 +19,6 @@ def get_fc_name(prompt: str, fc_def: list[dict[str, str]]) -> str:
     """
     llm = Small_LLM_Model()
 
-    import json
     fc_def_str = json.dumps(fc_def)
 
     prompt_1 = (
