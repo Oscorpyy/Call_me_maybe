@@ -1,10 +1,5 @@
-import os
-os.environ["HF_HUB_OFFLINE"] = "1"
-os.environ["HF_DATASETS_OFFLINE"] = "1"
-
-
-import json  # noqa: E402
-from llm_sdk import Small_LLM_Model  # noqa: E402
+import json
+from llm_sdk import Small_LLM_Model
 
 
 def get_fc_name(prompt: str, fc_def: list[dict[str, str]]) -> str:
