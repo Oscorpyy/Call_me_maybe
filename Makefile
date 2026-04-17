@@ -36,6 +36,8 @@ clean:
 	@find . -type d -name ".mypy_cache" -exec rm -rf {} +
 	@printf "\033[31mRemoving virtual environment...\033[0m\n"
 	@rm -rf $(VENV)
+	@printf "\033[31mRemoving output files...\033[0m\n"
+	@rm -rf data/output
 	@printf "\033[34mCleanup complete.\033[0m\n"
 
 re: clean run

@@ -169,6 +169,10 @@ def parse_and_validate_args() -> tuple[str, str, str]:
                           f"'parameters' must be an object.")
                     sys.exit(1)
                 for p_key, p_val in item["parameters"].items():
+                    if not p_key.strip():
+                        print(f"❌ Critical error: '{def_file}' "
+                              f"parameter name cannot be empty.")
+                        sys.exit(1)
                     if not isinstance(p_val, dict) or "type" not in p_val:
                         print(f"❌ Critical error: '{def_file}' "
                               f"parameter '{p_key}' missing 'type'.")
