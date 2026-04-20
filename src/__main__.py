@@ -4,9 +4,9 @@
 import os
 import json
 from typing import Any
-from src.get_fc_name import get_fc_name
-from src.get_fc_result import get_fc_result
-from src.parssing import parse_and_validate_args
+from fini.cm.src.get_fc_name import get_fc_name
+from fini.cm.src.get_fc_result import get_fc_result
+from fini.cm.src.parssing import parse_and_validate_args
 from time import time
 
 
