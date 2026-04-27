@@ -1,4 +1,5 @@
 VENV = .venv
+unexport VIRTUAL_ENV
 PY = $(VENV)/bin/python3
 
 SRC_DIR = src
